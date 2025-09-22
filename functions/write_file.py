@@ -1,10 +1,10 @@
 import os
+from functions.normalize_paths import normalize_paths
 
 def write_file(working_directory, file_path, content):
     try:
-        working_path = os.path.abspath(working_directory)
-        full_path = os.path.abspath(os.path.join(working_directory, file_path))
-        if not full_path.startswith(working_path):
+        working_path, full_path = normalize_paths(working_directory, file_path)
+        if not os.path.commonpath([working_path, full_path]) == working_path:
             return f'Error: Cannot write to "{file_path}" as it is outside the permitted working directory'
         if not os.path.exists(os.path.dirname(full_path)):
             os.makedirs(os.path.dirname(full_path))
