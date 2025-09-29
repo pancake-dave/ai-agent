@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 from functions.normalize_paths import normalize_paths
+from google.genai import types
 
 def run_python_file(working_directory, file_path, args=None):
     if args is None:
@@ -31,3 +32,23 @@ def run_python_file(working_directory, file_path, args=None):
         return result
     except Exception as e:
         return f"Error: executing Python file: {e}"
+
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Run python script of a specified path, constrained to the working directory.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="Path to the script that is to be run, relative to the working directory. This parameter has to be provided.",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                description="List of arguments for the script to run with. This parameter is optional.",
+                items=types.Schema(type=types.Type.STRING)
+            ),
+        },
+    ),
+)

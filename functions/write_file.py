@@ -1,5 +1,6 @@
 import os
 from functions.normalize_paths import normalize_paths
+from google.genai import types
 
 def write_file(working_directory, file_path, content):
     try:
@@ -13,3 +14,22 @@ def write_file(working_directory, file_path, content):
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
     except Exception as e:
         return f"Error: {e}"
+
+
+schema_write_file = types.FunctionDeclaration(
+    name="write_file",
+    description="Write data into a file of a specified path, constrained to the working directory.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="Path to the file to be written, relative to the working directory. This parameter has to be provided.",
+            ),
+            "content": types.Schema(
+                type=types.Type.STRING,
+                description="Data to be written into the file. This parameter has to be provided.",
+            ),
+        },
+    ),
+)
