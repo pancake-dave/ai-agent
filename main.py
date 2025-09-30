@@ -40,55 +40,55 @@ def main():
     messages = [
         types.Content(role="user", parts=[types.Part(text=user_prompt)]),
     ]
-    response = client.models.generate_content(
-        model='gemini-2.0-flash-001',
-        contents=messages,
-        config=types.GenerateContentConfig(
-            tools=[available_functions],
-            system_instruction=system_prompt
-        )
-    )
-    for candidate in response.candidates:
-        messages.append(candidate.content)
-
     verbose = False
     if "--verbose" in sys.argv:
         verbose = True
-        print(f"User prompt: {user_prompt}")
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
-    if response.text:
-        print(response.text)
 
-    if response.function_calls:
-        for function_call_part in response.function_calls:
-            function_call_result = call_function(function_call_part=function_call_part, verbose=verbose)
-            if (
-                not function_call_result
-                or len(function_call_result.parts) < 1
-                or not hasattr(function_call_result.parts[0], "function_response")
-                or not hasattr(function_call_result.parts[0].function_response, "response")
-            ):
-                raise RuntimeError(f"Malformed tool response for {function_call_part.name}")
-            elif verbose:
-                print(f"-> {function_call_result.parts[0].function_response.response}")
-                print(f"Placek debug {function_call_result}")
-
-            # messages.append(types.Content(role="user", parts=[types.Part(function_response=function_call_result)]))
-
-            tool_resp = types.Part(
-                function_response=types.FunctionResponse(
-                    name=function_call_part.name,
-                    response=function_call_result.parts[0].function_response.response,
+    max_iterations = 20
+    for i in range(max_iterations):
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.0-flash-001',
+                contents=messages,
+                config=types.GenerateContentConfig(
+                    tools=[available_functions],
+                    system_instruction=system_prompt
                 )
             )
+            for candidate in response.candidates:
+                messages.append(candidate.content)
 
-            messages.append(types.Content(role="user", parts=[tool_resp]))
+            if verbose:
+                print(f"User prompt: {user_prompt}")
+                print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+                print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+            if not response.function_calls and response.text:
+                print(response.text)
+                break
 
-    # print("-----debug-----")
-    # for message in messages:
-    #     print(message)
-    #     print()
+            if response.function_calls:
+                for function_call_part in response.function_calls:
+                    function_call_result = call_function(function_call_part=function_call_part, verbose=verbose)
+                    if (
+                        not function_call_result
+                        or len(function_call_result.parts) < 1
+                        or not hasattr(function_call_result.parts[0], "function_response")
+                        or not hasattr(function_call_result.parts[0].function_response, "response")
+                    ):
+                        raise RuntimeError(f"Malformed tool response for {function_call_part.name}")
+                    elif verbose:
+                        print(f"-> {function_call_result.parts[0].function_response.response}")
+
+                    tool_resp = types.Part(
+                        function_response=types.FunctionResponse(
+                            name=function_call_part.name,
+                            response=function_call_result.parts[0].function_response.response,
+                        )
+                    )
+
+                    messages.append(types.Content(role="user", parts=[tool_resp]))
+        except Exception as e:
+            return f"Error: content generation failed due to: {e}"
 
 
 if __name__ == "__main__":
