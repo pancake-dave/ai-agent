@@ -1,6 +1,5 @@
 import os
 import sys
-import time
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -49,6 +48,9 @@ def main():
             system_instruction=system_prompt
         )
     )
+    for candidate in response.candidates:
+        messages.append(candidate.content)
+
     verbose = False
     if "--verbose" in sys.argv:
         verbose = True
@@ -70,9 +72,23 @@ def main():
                 raise RuntimeError(f"Malformed tool response for {function_call_part.name}")
             elif verbose:
                 print(f"-> {function_call_result.parts[0].function_response.response}")
-            # Timeout below helps pass boot.dev CLI tests
-            # time.sleep(0.5)
+                print(f"Placek debug {function_call_result}")
 
+            # messages.append(types.Content(role="user", parts=[types.Part(function_response=function_call_result)]))
+
+            tool_resp = types.Part(
+                function_response=types.FunctionResponse(
+                    name=function_call_part.name,
+                    response=function_call_result.parts[0].function_response.response,
+                )
+            )
+
+            messages.append(types.Content(role="user", parts=[tool_resp]))
+
+    # print("-----debug-----")
+    # for message in messages:
+    #     print(message)
+    #     print()
 
 
 if __name__ == "__main__":
