@@ -4,7 +4,7 @@ class Calculator:
             "+": lambda a, b: a + b,
             "-": lambda a, b: a - b,
             "*": lambda a, b: a * b,
-            "/": lambda a, b: a / b,
+            "/": lambda a, b: a / b if b != 0 else (_ for _ in ()).throw(ValueError("division by zero"))
         }
         self.precedence = {
             "+": 1,
