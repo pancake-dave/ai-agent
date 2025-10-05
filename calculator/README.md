@@ -1,22 +1,27 @@
 # Calculator App
 
-This is a simple calculator application.
+This is a simple calculator application - a dummy program for the AI agent to work on.
 
 ## Usage
 
-To run the calculator, execute the following command:
+To run the calculator, go to calculator directory and execute the following command:
+
+To see usage instructions:
 
 ```bash
 python main.py
 ```
+or:
+```bash
+uv run main.py
+```
 
-You can also provide arguments to the calculator. For example:
+Providing arguments (actually calculating stuff), for example:
 
 ```bash
 python main.py 1 + 1
 ```
-
-## Files
-
-- `calculator.py`: The main calculator application.
-- `render.py`: Rendering functions.
+or:
+```bash
+uv run main.py 1 + 1
+```
